@@ -1719,20 +1719,27 @@ static s32 SEQ_BLM_FaderCallback(u8 blm, u8 fader, u8 value)
   mios32_midi_port_t port = (f->port == 0) ? tcc->midi_port : f->port;
   u8 chn = (f->chn == 0) ? tcc->midi_chn : (f->chn - 1);
 
-  if( f->send_function < 128 ) {
-    // send CC
-    MUTEX_MIDIOUT_TAKE;
-    MIOS32_MIDI_SendCC(port, chn, f->send_function & 0x7f, value);
-    MUTEX_MIDIOUT_GIVE;      
-  } else if( f->send_function < 256 ) {
-    // send inverted CC
-    MUTEX_MIDIOUT_TAKE;
-    MIOS32_MIDI_SendCC(port, chn, f->send_function & 0x7f, 127 - value);
-    MUTEX_MIDIOUT_GIVE;      
-  } else {
-    // special functions
-    // TODO
-  }
+  /* if( f->send_function < 128 ) { */
+  /*   // send CC */
+  /*   MUTEX_MIDIOUT_TAKE; */
+  /*   MIOS32_MIDI_SendCC(port, chn, f->send_function & 0x7f, value); */
+  /*   MUTEX_MIDIOUT_GIVE; */
+  /* } else if( f->send_function < 256 ) { */
+  /*   // send inverted CC */
+  /*   MUTEX_MIDIOUT_TAKE; */
+  /*   MIOS32_MIDI_SendCC(port, chn, f->send_function & 0x7f, 127 - value); */
+  /*   MUTEX_MIDIOUT_GIVE; */
+  /* } else { */
+  /*   // special functions */
+  /*   // TODO */
+  /* } */
+
+  //datafux_hack
+
+  blm_root_key = value;
+
+  /* DEBUG_MSG("[SEQ_BLM] Fader value %d\n", value); */
+  /* DEBUG_MSG("[SEQ_BLM] blm_root_key value %d\n", blm_root_key); */
 
   return 0; // no error
 }
