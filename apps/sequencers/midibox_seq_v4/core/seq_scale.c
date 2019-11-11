@@ -60,7 +60,7 @@ static const seq_scale_entry_t seq_scale_table[] = {
 //              1 	b2	2 	b3	3 	4 	b5	5 	b6	6 	b7	7	Minor Tone
 //              1 	#1	2 	#2	3 	4 	#4	5 	#5	6 	#6	7 	Augmented Tone
 // 1..10                                                                                                         <------------------>
-  {{            0,	2,	2,	4,	4,	5,	7,	7,	9,	9,	11,	11,	"Major               " }},
+  {{            0,	0,	2,	2,	4,	5,	5,	7,	7,	9,	9,	11,	"Major               " }},//datafux
   {{            0,	2,	2,	3,	3,	5,	7,	7,	8,	8,	11,	11,	"Harmonic Minor      " }},
   {{            0,	2,	2,	3,	3,	5,	7,	7,	9,	9,	11,	11,	"Melodic Minor       " }},
   {{            0,	2,	2,	3,	3,	5,	7,	7,	8,	8,	10,	10,	"Natural Minor       " }},
