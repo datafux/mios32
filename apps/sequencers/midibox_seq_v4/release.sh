@@ -34,7 +34,8 @@ cp hwcfg/midiphy_lh/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/midiphy_lh
 cp hwcfg/README.txt $RELEASE_DIR/hwcfg
 
 ###############################################################################
-configs=( MBHP_CORE_STM32 MBHP_CORE_LPC17 MBHP_CORE_STM32F4 )
+# configs=( MBHP_CORE_STM32 MBHP_CORE_LPC17 MBHP_CORE_STM32F4 )
+configs=( MBHP_CORE_STM32F4 )
 for i in "${configs[@]}"; do
   echo "Building for $i"
   source ../../../source_me_${i}
