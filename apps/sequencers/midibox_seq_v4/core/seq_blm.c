@@ -58,6 +58,7 @@ typedef enum {
   BLM_MODE_PATTERNS,
   BLM_MODE_KEYBOARD,
   BLM_MODE_303,
+  BLM_MODE_KEYBOARD_ALT,
 } blm_mode_t;
 
 
@@ -73,7 +74,8 @@ typedef enum {
   BLM_SELECTION_TRACKS,
   BLM_SELECTION_PATTERNS,
   BLM_SELECTION_KEYBOARD,
-  BLM_SELECTION_303
+  BLM_SELECTION_303,
+  BLM_SELECTION_KEYBOARD_ALT,
 } blm_selection_t;
 
 
@@ -142,7 +144,7 @@ static const blm_selection_t mode_selections_16rows[16] = {
   BLM_SELECTION_NONE,
   BLM_SELECTION_NONE,
   BLM_SELECTION_NONE,
-  BLM_SELECTION_NONE,
+  BLM_SELECTION_KEYBOARD_ALT,
   BLM_SELECTION_303,
   BLM_SELECTION_KEYBOARD,
   BLM_SELECTION_PATTERNS,
@@ -1072,6 +1074,86 @@ static s32 SEQ_BLM_KeyboardAllNotesOff(void)
 
 
 /////////////////////////////////////////////////////////////////////////////
+// LED Update/Button Handler for Keyboard Alt Mode
+/////////////////////////////////////////////////////////////////////////////
+static s32 SEQ_BLM_LED_UpdateKeyboardAltMode(void)
+{
+  return 0; // no error
+}
+
+static s32 SEQ_BLM_BUTTON_GP_KeyboardAltMode(u8 button_row, u8 button_column, u8 depressed)
+{
+  u8 visible_track = SEQ_UI_VisibleTrackGet();
+  seq_cc_trk_t *tcc = &seq_cc_trk[visible_track];
+  u8 event_mode = SEQ_CC_Get(visible_track, SEQ_CC_MIDI_EVENT_MODE);
+  u8 play_note = 0;
+  u8 num_rows = BLM_SCALAR_MASTER_NumRowsGet(0);
+
+  u8 velocity = 1;
+
+  // KEYBOARD_INVERTED & BLM16x16+x
+  velocity = 8*button_row + 4; //value 4..124
+
+  if( depressed ) {
+    // play off event - but only if depressed button matches with last one that played the note
+    DEBUG_MSG("[SEQ_BLM] OFF Column:%d Row:%d\n", button_column, button_row);
+    if( blm_keyboard_velocity[button_column] == velocity ) {
+      blm_keyboard_velocity[button_column] = 0;
+      play_note = 1;
+    }
+  } else {
+    int note_start;
+    int note_next;
+    DEBUG_MSG("[SEQ_BLM] ON Column:%d Row:%d\n", button_column, button_row);
+    note_start = (BLM_SCALAR_MASTER_NumRowsGet(0) <= 8) ? (blm_root_key + 7-button_row) : (blm_root_key + 15-button_row); // C-3/E-2 ..
+    note_start = SEQ_BLM_BUTTON_Hlp_TransposeNote(visible_track, note_start); // transpose this note based on track settings
+    note_next = note_start;
+    play_note = 1;
+
+    // play off event if note still active (e.g. different velocity of same note played)
+    if( blm_keyboard_velocity[button_column] ) {
+      mios32_midi_package_t p;
+      p.ALL = 0;
+      p.cin = NoteOn;
+      p.event = NoteOn;
+      p.chn = blm_keyboard_chn[button_column];
+      p.note = blm_keyboard_note[button_column];
+      p.velocity = 0x00;
+
+      MUTEX_MIDIOUT_TAKE;
+      MIOS32_MIDI_SendPackage(blm_keyboard_port[button_column], p);
+      blm_keyboard_velocity[button_column] = 0x00; // to notify that note-off has been played
+      MUTEX_MIDIOUT_GIVE;
+    }
+    
+    // set new port/channel/note/velocity
+    if( play_note ) {
+      blm_keyboard_port[button_column] = tcc->midi_port;
+      blm_keyboard_chn[button_column] = tcc->midi_chn;
+      blm_keyboard_note[button_column] = note_start;
+      blm_keyboard_velocity[button_column] = velocity;
+    }
+  }
+
+  if( play_note ) {
+    mios32_midi_package_t p;
+    p.ALL = 0;
+    p.cin = NoteOn;
+    p.event = NoteOn;
+    p.chn = blm_keyboard_chn[button_column];
+    p.note = blm_keyboard_note[button_column];
+    p.velocity = blm_keyboard_velocity[button_column];
+
+    MUTEX_MIDIOUT_TAKE;
+    MIOS32_MIDI_SendPackage(blm_keyboard_port[button_column], p);
+    MUTEX_MIDIOUT_GIVE;
+  }
+
+  return 0; // no error
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
 // LED Update/Button Handler for 303 Mode
 /////////////////////////////////////////////////////////////////////////////
 static s32 SEQ_BLM_LED_Update303Mode(void)
@@ -1359,9 +1441,13 @@ s32 SEQ_BLM_LED_Update(void)
       SEQ_BLM_LED_Update303Mode();
       break;
 
+    case BLM_MODE_KEYBOARD_ALT:
+      SEQ_BLM_LED_UpdateKeyboardAltMode();
+      break;
+
     default: // BLM_MODE_TRACKS
       SEQ_BLM_LED_UpdateTrackMode();
-  }
+    }
 
   // finally update BLM
   BLM_SCALAR_MASTER_Periodic_mS();
@@ -1450,6 +1536,10 @@ static s32 SEQ_BLM_ButtonCallback(u8 blm, blm_scalar_master_element_t element_id
 
     case BLM_MODE_303:
       SEQ_BLM_BUTTON_GP_303Mode(button_y, button_x, button_depressed);
+      break;
+
+    case BLM_MODE_KEYBOARD_ALT:
+      SEQ_BLM_BUTTON_GP_KeyboardAltMode(button_y, button_x, button_depressed);
       break;
 
     default: // BLM_MODE_TRACKS
@@ -1686,6 +1776,14 @@ static s32 SEQ_BLM_ButtonCallback(u8 blm, blm_scalar_master_element_t element_id
 	  blm_alt_active = 0;
 	}
 	BLM_SCALAR_MASTER_ForceDisplayUpdate(0);
+	return 1; // MIDI event has been taken
+
+      case BLM_SELECTION_KEYBOARD_ALT:
+	if( !button_depressed ) {
+	  blm_mode = BLM_MODE_KEYBOARD_ALT;
+	  BLM_SCALAR_MASTER_ForceDisplayUpdate(0);
+	}
+
 	return 1; // MIDI event has been taken
       }
     }
