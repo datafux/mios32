@@ -97,7 +97,7 @@ WARN_LOGFILE           =
 INPUT                  = $(MIOS32_PATH)/include/mios32/ \
                          $(MIOS32_PATH)/mios32 \
                          $(MIOS32_PATH)/modules \
-                         $(MIOS32_PATH)/apps/sequencers/midibox_seq_v4/src
+                         $(MIOS32_PATH)/apps/sequencers/midibox_seq_v4/core
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.cc \
