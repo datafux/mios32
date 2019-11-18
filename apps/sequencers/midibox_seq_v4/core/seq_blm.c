@@ -1086,69 +1086,25 @@ static s32 SEQ_BLM_BUTTON_GP_KeyboardAltMode(u8 button_row, u8 button_column, u8
   u8 visible_track = SEQ_UI_VisibleTrackGet();
   seq_cc_trk_t *tcc = &seq_cc_trk[visible_track];
   u8 event_mode = SEQ_CC_Get(visible_track, SEQ_CC_MIDI_EVENT_MODE);
-  u8 play_note = 0;
-  u8 num_rows = BLM_SCALAR_MASTER_NumRowsGet(0);
 
-  u8 velocity = 1;
+  int note_shift = 4;
 
-  // KEYBOARD_INVERTED & BLM16x16+x
-  velocity = 8*button_row + 4; //value 4..124
+  mios32_midi_port_t port = tcc->midi_port;
+  u8 chn = tcc->midi_chn;
+  u8 note = blm_root_key + ( 15 - button_row ) * note_shift + button_column; 
 
-  if( depressed ) {
-    // play off event - but only if depressed button matches with last one that played the note
-    DEBUG_MSG("[SEQ_BLM] OFF Column:%d Row:%d\n", button_column, button_row);
-    if( blm_keyboard_velocity[button_column] == velocity ) {
-      blm_keyboard_velocity[button_column] = 0;
-      play_note = 1;
-    }
-  } else {
-    int note_start;
-    int note_next;
-    DEBUG_MSG("[SEQ_BLM] ON Column:%d Row:%d\n", button_column, button_row);
-    note_start = (BLM_SCALAR_MASTER_NumRowsGet(0) <= 8) ? (blm_root_key + 7-button_row) : (blm_root_key + 15-button_row); // C-3/E-2 ..
-    note_start = SEQ_BLM_BUTTON_Hlp_TransposeNote(visible_track, note_start); // transpose this note based on track settings
-    note_next = note_start;
-    play_note = 1;
 
-    // play off event if note still active (e.g. different velocity of same note played)
-    if( blm_keyboard_velocity[button_column] ) {
-      mios32_midi_package_t p;
-      p.ALL = 0;
-      p.cin = NoteOn;
-      p.event = NoteOn;
-      p.chn = blm_keyboard_chn[button_column];
-      p.note = blm_keyboard_note[button_column];
-      p.velocity = 0x00;
+  //simple but note can also be triggered by seq
 
+  if( depressed ) { // play off event 
       MUTEX_MIDIOUT_TAKE;
-      MIOS32_MIDI_SendPackage(blm_keyboard_port[button_column], p);
-      blm_keyboard_velocity[button_column] = 0x00; // to notify that note-off has been played
+      MIOS32_MIDI_SendNoteOff(port, chn, note, 0);
       MUTEX_MIDIOUT_GIVE;
-    }
-    
-    // set new port/channel/note/velocity
-    if( play_note ) {
-      blm_keyboard_port[button_column] = tcc->midi_port;
-      blm_keyboard_chn[button_column] = tcc->midi_chn;
-      blm_keyboard_note[button_column] = note_start;
-      blm_keyboard_velocity[button_column] = velocity;
-    }
+  } else { // play on event
+      MUTEX_MIDIOUT_TAKE;
+      MIOS32_MIDI_SendNoteOn(port, chn, note, 127);
+      MUTEX_MIDIOUT_GIVE;
   }
-
-  if( play_note ) {
-    mios32_midi_package_t p;
-    p.ALL = 0;
-    p.cin = NoteOn;
-    p.event = NoteOn;
-    p.chn = blm_keyboard_chn[button_column];
-    p.note = blm_keyboard_note[button_column];
-    p.velocity = blm_keyboard_velocity[button_column];
-
-    MUTEX_MIDIOUT_TAKE;
-    MIOS32_MIDI_SendPackage(blm_keyboard_port[button_column], p);
-    MUTEX_MIDIOUT_GIVE;
-  }
-
   return 0; // no error
 }
 
