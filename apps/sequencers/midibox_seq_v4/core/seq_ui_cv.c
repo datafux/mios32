@@ -16,6 +16,9 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include <mios32.h>
+
+#if !defined(MIOS32_DONT_USE_AOUT)
+
 #include <aout.h>
 #include "tasks.h"
 
@@ -55,8 +58,8 @@ static u8 selected_cv;
 static u8 selected_clkout;
 
 const u16 din_sync_div_presets[] =
-  // 1    2    3    4   6   8  12  16  24  32  48  96  192  384 ppqn, StartStop(=0)
-  { 384, 192, 128, 96, 64, 48, 32, 24, 16, 12,  8,  4,   2,  1, 0 };
+  // 0.063 0.125, 0.25  0.5   1    2    3    4   6   8  12  16  24  32  48  96  192  384 ppqn, StartStop(=0), StopStart, Start Pulse, Stop Pulse
+  {  6144, 3072,  1536, 768, 384, 192, 128, 96, 64, 48, 32, 24, 16, 12,  8,  4,   2,  1, 0, 0xffff, 0xfffe, 0xfffd };
 
 
 
@@ -130,6 +133,14 @@ static s32 Encoder_Handler(seq_ui_encoder_t encoder, s32 incrementer)
 
     case SEQ_UI_ENCODER_GP7:
       ui_selected_item = ITEM_CALIBRATION_1;
+
+      // extra: switch unipolar/bipolar display
+      if( incrementer == 0 ) {
+        seq_ui_options.CV_DISPLAY_BIPOLAR ^= 1;
+        ui_store_file_required = 1;
+
+	SEQ_UI_Msg(SEQ_UI_MSG_USER_R, 1000, "Calibration Values:", seq_ui_options.CV_DISPLAY_BIPOLAR ? "Bipolar" : "Unipolar");
+      }      
       break;
 
     case SEQ_UI_ENCODER_GP8:
@@ -486,7 +497,7 @@ static s32 LCD_Handler(u8 high_prio)
     SEQ_LCD_PrintSpaces(10);
   } else {
     char str[11];
-    SEQ_CV_CaliNameGet(str, selected_cv);
+    SEQ_CV_CaliNameGet(str, selected_cv, seq_ui_options.CV_DISPLAY_BIPOLAR);
     SEQ_LCD_PrintString(str);
   }
 
@@ -503,9 +514,16 @@ static s32 LCD_Handler(u8 high_prio)
     SEQ_LCD_PrintSpaces(9);
   } else {
     u16 divider = SEQ_CV_ClkDividerGet(selected_clkout);
-    if( !divider ) {
-      SEQ_LCD_PrintFormattedString("StartStop", 384 / divider);
-    } else {
+    switch( divider ) {
+    case 0x0000: SEQ_LCD_PrintFormattedString("StartStop"); break;
+    case 0xffff: SEQ_LCD_PrintFormattedString("StopStart"); break;
+    case 0xfffe: SEQ_LCD_PrintFormattedString("StrtPulse"); break;
+    case 0xfffd: SEQ_LCD_PrintFormattedString("StopPulse"); break;
+    case   6144: SEQ_LCD_PrintFormattedString("0.063PPQN"); break;
+    case   3072: SEQ_LCD_PrintFormattedString("0.125PPQN"); break;
+    case   1536: SEQ_LCD_PrintFormattedString("0.25 PPQN"); break;
+    case    768: SEQ_LCD_PrintFormattedString("0.5 PPQN "); break;
+    default:
       SEQ_LCD_PrintFormattedString("%3d PPQN ", 384 / divider);
     }
   }
@@ -591,3 +609,4 @@ s32 SEQ_UI_CV_Init(u32 mode)
 
   return 0; // no error
 }
+#endif

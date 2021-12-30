@@ -50,6 +50,7 @@
 #include "mbng_cv.h"
 #include "mbng_kb.h"
 #include "mbng_matrix.h"
+#include "mbng_rgbled.h"
 #include "mbng_lcd.h"
 
 #if !defined(MIOS32_FAMILY_EMULATION)
@@ -518,7 +519,7 @@ s32 parseEvent(u32 line, char *cmd, char *brkt)
   item.stream = stream;
   item.stream_size = 0;
 
-#define LABEL_MAX_SIZE 41
+#define LABEL_MAX_SIZE 128
   char label[LABEL_MAX_SIZE];
   item.label = label;
   label[0] = 0;
@@ -825,8 +826,8 @@ s32 parseEvent(u32 line, char *cmd, char *brkt)
 #endif
 	} else {
 	  // no extra check if event_type already defined...
-	  stream[1] = value & 0xff;
-	  stream[2] = value >> 8;
+	  stream[1] = value & 0x7f;
+	  stream[2] = value >> 7;
 	  item.secondary_value = stream[1];
 	}
       }
@@ -1462,6 +1463,11 @@ s32 parseEvent(u32 line, char *cmd, char *brkt)
 	item.flags.led_matrix_pattern = led_matrix_pattern;
       }
 
+      ////////////////////////////////////////////////////////////////////////////////////////////////
+      } else if( strcasecmp(parameter, "rgbled_pattern") == 0 ) {
+        u8 rgbled_pattern = MBNG_EVENT_ItemRgbLedPatternFromStrGet(value_str);
+        item.flags.rgbled_pattern = rgbled_pattern;
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
     } else if( strcasecmp(parameter, "offset") == 0 ) {
       int value;
@@ -1640,7 +1646,8 @@ s32 parseEvent(u32 line, char *cmd, char *brkt)
     } else if( strcasecmp(parameter, "label") == 0 ) {
       if( strlen(value_str) >= LABEL_MAX_SIZE ) {
 #if DEBUG_VERBOSE_LEVEL >= 1
-	DEBUG_MSG("[MBNG_FILE_C:%d] ERROR: string to long in EVENT_%s ... %s=%s\n", line, event, parameter, value_str);
+        value_str[(LABEL_MAX_SIZE > 40) ? 40 : (LABEL_MAX_SIZE-1)] = 0; // ensure that DEBUG_MSG doesn't exceed 100 chars
+	DEBUG_MSG("[MBNG_FILE_C:%d] ERROR: string to long in EVENT_%s ... %s=\"%s\"...\n", line, event, parameter, value_str);
 #endif
 	return -1;
       } else {
@@ -1690,7 +1697,7 @@ s32 parseMap(u32 line, char *cmd, char *brkt)
 {
   int map;
 
-#define MAP_VALUE_MAX_SIZE 128
+#define MAP_VALUE_MAX_SIZE 256
   u8 map_values[MAP_VALUE_MAX_SIZE];
 
   if( (map=get_dec((char *)&cmd[3])) < 1 || map >= 256 ) {
@@ -1733,11 +1740,12 @@ s32 parseMap(u32 line, char *cmd, char *brkt)
   char *value_str;
   while( pos < MAP_VALUE_MAX_SIZE && (value_str = strtok_r(NULL, separators_map, &brkt)) ) {
     int value;
-    u16 max = read_hword ? 0xffff : 0xff;
+    s16 min = read_hword ? -0x8000 : 0x00;
+    s16 max = read_hword ? 0x7fff : 0xff;
 
-    if( (value=get_dec(value_str)) < 0 || value > max ) {
+    if( (value=get_dec(value_str)) < min || value > max ) {
 #if DEBUG_VERBOSE_LEVEL >= 1
-      DEBUG_MSG("[MBNG_FILE_C:%d] ERROR: invalid map value '%s' in %s, expecting 0..%d (0x00..%x)\n", line, value_str, cmd, max, max);
+      DEBUG_MSG("[MBNG_FILE_C:%d] ERROR: invalid map value '%s' in %s, expecting %d..%d (0x%x..%x)\n", line, value_str, cmd, min, max, min, max);
 #endif
       return -1;
     } else {
@@ -3700,6 +3708,7 @@ s32 MBNG_FILE_C_Parser(u32 line, char *line_buffer, u8 *got_first_event_item)
       MBNG_MF_Init(0);
       MBNG_CV_Init(0);
       MBNG_KB_Init(0);
+      MBNG_RGBLED_Init(0);
       MBNG_FILE_R_TokenizedNgrSet(1);
     } else if( strcasecmp(parameter, "LCD") == 0 ) {
       char *str = brkt;
@@ -4376,6 +4385,11 @@ static s32 MBNG_FILE_C_Write_Hlp(u8 write_to_file)
 	  item.flags.led_matrix_pattern != MBNG_EVENT_LED_MATRIX_PATTERN_UNDEFINED ) {
 	sprintf(line_buffer, "  led_matrix_pattern=%s", MBNG_EVENT_ItemLedMatrixPatternStrGet(&item));
 	FLUSH_BUFFER;
+      }
+
+      if( item.flags.rgbled_pattern > 0 ) {
+        sprintf(line_buffer, "  rgbled_pattern=%s", MBNG_EVENT_ItemRgbLedPatternStrGet(&item));
+        FLUSH_BUFFER;
       }
 
       if( item.flags.colour ) {

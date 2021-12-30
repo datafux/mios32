@@ -42,6 +42,7 @@
 #include "seq_blm.h"
 #include "seq_song.h"
 #include "seq_mixer.h"
+#include "seq_pattern.h"
 #include "seq_hwcfg.h"
 #include "seq_tpd.h"
 #include "seq_lcd_logo.h"
@@ -299,14 +300,18 @@ s32 SEQ_TERMINAL_ParseLine(char *input, void *_output_function)
 
   MUTEX_MIDIOUT_TAKE;
 
+#if !defined(MIOS32_DONT_USE_OSC)
 #if !defined(MIOS32_FAMILY_EMULATION)
   if( UIP_TERMINAL_ParseLine(input, _output_function) >= 1 )
     return 0; // command parsed by UIP Terminal
 #endif
+#endif
 
 #if !defined(MIOS32_FAMILY_EMULATION)
+#if !defined(MIOS32_DONT_USE_AOUT)
   if( AOUT_TerminalParseLine(input, _output_function) >= 1 )
     return 0; // command parsed
+#endif
 #endif
 
 #ifdef MIOS32_LCD_universal
@@ -662,6 +667,17 @@ s32 SEQ_TERMINAL_ParseLine(char *input, void *_output_function)
 	      out("Enter 'store' to save this setting on SD Card.");
 	    }
 	  }
+	} else if( strcmp(parameter, "seq_pattern_log_load_time") == 0 ) {
+          int on_off = -1;
+          if( (parameter = strtok_r(NULL, separators, &brkt)) )
+            on_off = get_on_off(parameter);
+
+          if( on_off < 0 ) {
+            out("Expecting 'on' or 'off'");
+          } else {
+            seq_pattern_log_load_time = on_off;
+            out("SEQ_PATTERN Load Time Logging turned %s", on_off ? "on" : "off");
+          }
 	} else {
 	  out("Unknown set parameter: '%s'!", parameter);
 	}
@@ -913,16 +929,21 @@ s32 SEQ_TERMINAL_PrintHelp(void *_output_function)
   out("  set din_testmode <on|off>: change DIN (button/encoder) testmode (current: %s)", app_din_testmode ? "on" : "off");
   out("  set blm_port <off|in-port>: change BLM input port (same port is used for output)");
   out("  set rec_quantisation <1..100>: change record quantisation (default: 10%%, current: %d%%)\n", seq_record_quantize);
+  out("  set seq_pattern_log_load_time <on|off>: log pattern load time (current: %s)", seq_pattern_log_load_time ? "on" : "off");
 
   MUTEX_MIDIOUT_TAKE;
 #if !defined(MIOS32_FAMILY_EMULATION)
+#if !defined(MIOS32_DONT_USE_AOUT)
   AOUT_TerminalHelp(_output_function);
+#endif
 #endif
 #ifdef MIOS32_LCD_universal
   APP_LCD_TerminalHelp(_output_function);
 #endif
+#if !defined(MIOS32_DONT_USE_OSC)
 #if !defined(MIOS32_FAMILY_EMULATION)
   UIP_TERMINAL_Help(_output_function);
+#endif
 #endif
   MUTEX_MIDIOUT_GIVE;
 

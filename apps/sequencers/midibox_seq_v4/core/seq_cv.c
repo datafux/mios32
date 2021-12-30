@@ -16,6 +16,9 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include <mios32.h>
+
+#if !defined(MIOS32_DONT_USE_AOUT)
+
 #include <string.h>
 #include <aout.h>
 #include <notestack.h>
@@ -279,12 +282,31 @@ aout_cali_mode_t SEQ_CV_CaliModeGet(void)
 }
 
 // str must be reserved for up to 10+1 characters!
-s32 SEQ_CV_CaliNameGet(char *str, u8 cv)
+s32 SEQ_CV_CaliNameGet(char *str, u8 cv, u8 display_bipolar)
 {
   u32 mode = (u32)SEQ_CV_CaliModeGet();
 
   if( mode < AOUT_NUM_CALI_MODES ) {
-    sprintf(str, "  %s  ", AOUT_CaliNameGet(mode));
+    if( display_bipolar ) {
+      switch( mode ) {
+      case AOUT_CALI_MODE_1V:
+	sprintf(str, "  -4.00V  ");
+	break;
+      case AOUT_CALI_MODE_2V:
+	sprintf(str, "  -3.00V  ");
+	break;
+      case AOUT_CALI_MODE_4V:
+	sprintf(str, "  -1.00V  ");
+	break;
+      case AOUT_CALI_MODE_8V:
+	sprintf(str, "   3.00V  ");
+	break;
+      default:
+	sprintf(str, "  %s  ", AOUT_CaliNameGet(mode));
+      }
+    } else {
+      sprintf(str, "  %s  ", AOUT_CaliNameGet(mode));
+    }
   } else {
     // calibration values
     u16 *cali_points = SEQ_CV_CaliPointsPtrGet(cv);
@@ -302,7 +324,7 @@ s32 SEQ_CV_CaliNameGet(char *str, u8 cv)
       if( x >= (AOUT_NUM_CALI_POINTS_X-1) ) {
 	sprintf(str, " Max:%5d", cali_diff);
       } else {
-	sprintf(str, " %2dV:%5d", x, cali_diff);
+	sprintf(str, " %2dV:%5d", display_bipolar ? (x - 5) : x, cali_diff);
       }
     }
   }
@@ -535,26 +557,53 @@ s32 SEQ_CV_DOUT_GateSet(u8 dout, u8 value)
 /////////////////////////////////////////////////////////////////////////////
 s32 SEQ_CV_Update(void)
 {
-  static u8 last_gates = 0xff; // to force an update
+  static u32 last_gates = 0xffffffff; // to force an update
   static u8 last_start_stop = 0xff; // to force an update
 
   u8 start_stop = SEQ_BPM_IsRunning();
 
   // Clock outputs
-  // Note: a clock output acts as start/stop if clock divider set to 0
   u8 clk_sr_value = 0;
   {
     int clkout;
     u16 *clk_divider = (u16 *)&seq_cv_clkout_divider[0];
     u8 *pulse_ctr = (u8 *)&seq_cv_clkout_pulse_ctr[0];
     for(clkout=0; clkout<SEQ_CV_NUM_CLKOUT; ++clkout, ++clk_divider, ++pulse_ctr) {
-      if( !*clk_divider && start_stop ) {
-	clk_sr_value |= (1 << clkout);
+
+      switch( *clk_divider ) {
+
+      case 0x0000: { // Start/Stop Function
+        if( start_stop ) {
+          clk_sr_value |= (1 << clkout);
+        }
+      } break;
+
+      case 0xffff: { // Stop/Start Function
+        if( !start_stop ) {
+          clk_sr_value |= (1 << clkout);
+        }
+      } break;
+
+      case 0xfffe: { // Start Pulse
+        if( start_stop != last_start_stop && start_stop ) {
+          *pulse_ctr = seq_cv_clkout_pulsewidth[clkout] + 1;
+        }
+      } break;
+
+      case 0xfffd: { // Stop Pulse
+        if( start_stop != last_start_stop && !start_stop ) {
+          *pulse_ctr = seq_cv_clkout_pulsewidth[clkout] + 1;
+        }
+      } break;
+
+      default: { // Common Clock Output
+        // no overruling
+      }
       }
 
       if( *pulse_ctr ) {
-	*pulse_ctr -= 1;
-	clk_sr_value |= (1 << clkout);
+        *pulse_ctr -= 1;
+        clk_sr_value |= (1 << clkout);
       }
     }
   }
@@ -737,15 +786,19 @@ s32 SEQ_CV_SendPackage(u8 cv_port, mios32_midi_package_t package)
 	gate_pin_normal = package.chn + 8*cv_port;
 	gate_pin_velocity_gt100 = -1; // not relevant
       } else if( package.chn <= Chn12 ) {
-	aout_chn_note = ((package.chn & 3) << 1) + 8*cv_port;
+	aout_chn_note = (package.chn & 3) + 8*cv_port;
 	aout_chn_vel = aout_chn_note + 1;
-	gate_pin_normal = ((package.chn & 3) << 1) + 8*cv_port;
+	gate_pin_normal = (package.chn & 3) + 8*cv_port;
 	gate_pin_velocity_gt100 = gate_pin_normal + 1;
       } else { // Chn <= 15
-	aout_chn_vel = ((package.chn & 3) << 1) + 8*cv_port;
+	aout_chn_vel = (package.chn & 3) + 8*cv_port;
 	aout_chn_note = aout_chn_vel + 1;
-	gate_pin_normal = ((package.chn & 3) << 1) + 8*cv_port;
+	gate_pin_normal = (package.chn & 3) + 8*cv_port;
 	gate_pin_velocity_gt100 = gate_pin_normal + 1;
+      }
+
+      if( aout_chn_note >= SEQ_CV_NUM ) {
+	return 0; // event not taken, especially relevant for legacy MBSEQV4 (without +) which supports only 8 CV channels
       }
 
       // branch depending on Note On/Off event
@@ -779,7 +832,7 @@ s32 SEQ_CV_SendPackage(u8 cv_port, mios32_midi_package_t package)
 	  if( package.velocity > 100 )
 	    gates |= (1 << gate_pin_velocity_gt100);
 	  else
-	    gates |= (1 << gate_pin_velocity_gt100);
+	    gates &= ~(1 << gate_pin_velocity_gt100);
 	}
       } else {
 	// clear gate pins
@@ -862,3 +915,4 @@ s32 SEQ_CV_ResetAllChannels(void)
 
   return 0; // no error
 }
+#endif
