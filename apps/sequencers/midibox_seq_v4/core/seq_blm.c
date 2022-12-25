@@ -52,14 +52,14 @@
 // Type definitions
 /////////////////////////////////////////////////////////////////////////////
 
-typedef enum {
-  BLM_MODE_GRID,
-  BLM_MODE_TRACKS,
-  BLM_MODE_PATTERNS,
-  BLM_MODE_KEYBOARD,
-  BLM_MODE_303,
-  BLM_MODE_KEYBOARD_ALT,
-} blm_mode_t;
+/* typedef enum { */
+/*   BLM_MODE_GRID, */
+/*   BLM_MODE_TRACKS, */
+/*   BLM_MODE_PATTERNS, */
+/*   BLM_MODE_KEYBOARD, */
+/*   BLM_MODE_303, */
+/*   BLM_MODE_KEYBOARD_ALT, */
+/* } blm_mode_t; */
 
 
 typedef enum {
@@ -102,7 +102,7 @@ static u8 SEQ_BLM_BUTTON_Hlp_TransposeNote(u8 track, u8 note);
 // Local variables
 /////////////////////////////////////////////////////////////////////////////
 
-static blm_mode_t blm_mode;
+/* static blm_mode_t blm_mode; */
 
 static mios32_midi_port_t blm_keyboard_port[BLM_SCALAR_MASTER_NUM_ROWS];
 static u8 blm_keyboard_chn[BLM_SCALAR_MASTER_NUM_ROWS];

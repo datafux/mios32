@@ -397,7 +397,7 @@ extern s32 SEQ_UI_TRKLIVE_Init(u32 mode);
 extern s32 SEQ_UI_TRKREPEAT_Init(u32 mode);
 extern s32 SEQ_UI_PATTERN_RMX_Init(u32 mode);
 extern s32 SEQ_UI_TRKEUCLID_Init(u32 mode);
-
+extern s32 SEQ_UI_BLM_Init(u32 mode);//datafux
 
 extern s32 SEQ_UI_EDIT_LED_Handler(u16 *gp_leds);
 extern s32 SEQ_UI_EDIT_Button_Handler(seq_ui_button_t button, s32 depressed);

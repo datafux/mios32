@@ -87,6 +87,7 @@ typedef enum {
   SEQ_UI_PAGE_PATTERN_RMX,
   SEQ_UI_PAGE_BOOKMARKS,
   SEQ_UI_PAGE_INFO,
+  SEQ_UI_PAGE_BLM,//datafux
   SEQ_UI_PAGE_LAST__UNIMPLEMENTED
 } seq_ui_page_t;
 

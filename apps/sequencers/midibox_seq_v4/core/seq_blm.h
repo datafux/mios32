@@ -45,6 +45,14 @@ typedef union {
   };
 } seq_blm_fader_t;
 
+typedef enum {
+  BLM_MODE_GRID,
+  BLM_MODE_TRACKS,
+  BLM_MODE_PATTERNS,
+  BLM_MODE_KEYBOARD,
+  BLM_MODE_303,
+  BLM_MODE_KEYBOARD_ALT,
+} blm_mode_t;//datafux
 
 /////////////////////////////////////////////////////////////////////////////
 // Prototypes
@@ -63,5 +71,7 @@ extern mios32_midi_port_t seq_blm_port;
 extern u8 seq_blm_timeout_ctr;
 extern seq_blm_options_t seq_blm_options;
 extern seq_blm_fader_t seq_blm_fader[SEQ_BLM_NUM_FADERS];
+
+static blm_mode_t blm_mode;//datafux
 
 #endif /* _SEQ_MIDI_BLM_H */
