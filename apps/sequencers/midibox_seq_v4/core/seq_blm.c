@@ -87,6 +87,7 @@ seq_blm_options_t seq_blm_options;
 
 seq_blm_fader_t seq_blm_fader[SEQ_BLM_NUM_FADERS];
 
+blm_mode_t blm_mode;//datafux
 
 /////////////////////////////////////////////////////////////////////////////
 // Local prototypes
