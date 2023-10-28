@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="MXNnwm" name="MIOS_Studio" projectType="guiapp" version="2.4.8"
-              jucerVersion="5.4.3" bundleIdentifier="org.midibox.MIOSStudio"
-              companyName="MIDIbox">
+<JUCERPROJECT id="MXNnwm" name="MIOS_Studio" projectType="guiapp" version="2.4.9"
+              bundleIdentifier="org.midibox.MIOSStudio" companyName="MIDIbox"
+              displaySplashScreen="1" jucerFormatVersion="1" defines="JUCE_MODAL_LOOPS_PERMITTED=1">
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" smallIcon="Vd9FJX" bigIcon="Y0l2Yc">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="MIOS_Studio_Debug"
-                       osxCompatibility="10.8 SDK"/>
+                       osxCompatibility="13 SDK" macOSDeploymentTarget="13"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="2" targetName="MIOS_Studio"
-                       osxCompatibility="10.8 SDK"/>
+                       osxCompatibility="13 SDK" macOSDeploymentTarget="13"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_utils"/>
@@ -146,17 +146,17 @@
           file="icon/MIOS_Studio.iconset/icon_128x128.png"/>
   </MAINGROUP>
   <MODULES>
-    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
   </MODULES>
   <JUCEOPTIONS/>
   <LIVE_SETTINGS>
