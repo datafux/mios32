@@ -16,22 +16,22 @@ fi
 echo "Creating $RELEASE_DIR"
 
 mkdir $RELEASE_DIR
-cp README.txt $RELEASE_DIR
-cp CHANGELOG.txt $RELEASE_DIR
+# cp README.txt $RELEASE_DIR
+# cp CHANGELOG.txt $RELEASE_DIR
 
-mkdir -p $RELEASE_DIR/hwcfg/standard_v4
-cp hwcfg/standard_v4/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/standard_v4
-mkdir -p $RELEASE_DIR/hwcfg/tk
-cp hwcfg/tk/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/tk
-mkdir -p $RELEASE_DIR/hwcfg/wilba
-cp hwcfg/wilba/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/wilba
-mkdir -p $RELEASE_DIR/hwcfg/wilba_tpd
-cp hwcfg/wilba_tpd/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/wilba_tpd
-mkdir -p $RELEASE_DIR/hwcfg/midiphy_rh
-cp hwcfg/midiphy_rh/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/midiphy_rh
-mkdir -p $RELEASE_DIR/hwcfg/midiphy_lh
-cp hwcfg/midiphy_lh/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/midiphy_lh
-cp hwcfg/README.txt $RELEASE_DIR/hwcfg
+# mkdir -p $RELEASE_DIR/hwcfg/standard_v4
+# cp hwcfg/standard_v4/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/standard_v4
+# mkdir -p $RELEASE_DIR/hwcfg/tk
+# cp hwcfg/tk/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/tk
+# mkdir -p $RELEASE_DIR/hwcfg/wilba
+# cp hwcfg/wilba/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/wilba
+# mkdir -p $RELEASE_DIR/hwcfg/wilba_tpd
+# cp hwcfg/wilba_tpd/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/wilba_tpd
+# mkdir -p $RELEASE_DIR/hwcfg/midiphy_rh
+# cp hwcfg/midiphy_rh/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/midiphy_rh
+# mkdir -p $RELEASE_DIR/hwcfg/midiphy_lh
+# cp hwcfg/midiphy_lh/MBSEQ_HW.V4 $RELEASE_DIR/hwcfg/midiphy_lh
+# cp hwcfg/README.txt $RELEASE_DIR/hwcfg
 
 ###############################################################################
 # configs=( MBHP_CORE_STM32 MBHP_CORE_LPC17 MBHP_CORE_STM32F4 )

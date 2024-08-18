@@ -1482,23 +1482,18 @@ static s32 SEQ_BLM_ButtonCallback(u8 blm, blm_scalar_master_element_t element_id
     case BLM_MODE_PATTERNS:
       SEQ_BLM_BUTTON_GP_PatternMode(button_y, button_x, button_depressed);
       break;
-
     case BLM_MODE_GRID:
       SEQ_BLM_BUTTON_GP_GridMode(button_y, button_x, button_depressed);
       break;
-
     case BLM_MODE_KEYBOARD:
       SEQ_BLM_BUTTON_GP_KeyboardMode(button_y, button_x, button_depressed);
       break;
-
     case BLM_MODE_303:
       SEQ_BLM_BUTTON_GP_303Mode(button_y, button_x, button_depressed);
       break;
-
     case BLM_MODE_KEYBOARD_ALT:
       SEQ_BLM_BUTTON_GP_KeyboardAltMode(button_y, button_x, button_depressed);
       break;
-
     default: // BLM_MODE_TRACKS
       SEQ_BLM_BUTTON_GP_TrackMode(button_y, button_x, button_depressed);
     }
@@ -1541,7 +1536,9 @@ static s32 SEQ_BLM_ButtonCallback(u8 blm, blm_scalar_master_element_t element_id
 
     // Overlay alt functions for various modes
     if( blm_alt_active == 3 && !came_from_extra_shift_row ) {
+
       switch( blm_mode ) {
+
       case BLM_MODE_GRID: {
 	u8 visible_track = SEQ_UI_VisibleTrackGet();
 	u8 event_mode = SEQ_CC_Get(visible_track, SEQ_CC_MIDI_EVENT_MODE);
@@ -1558,7 +1555,7 @@ static s32 SEQ_BLM_ButtonCallback(u8 blm, blm_scalar_master_element_t element_id
 	  u8 octave = num_rows - 1 - button_y;
 	  blm_root_key = octave*12;
 	}
-	  
+
 	BLM_SCALAR_MASTER_ForceDisplayUpdate(0);
 	return 1; // MIDI event has been taken
       }
@@ -1594,7 +1591,7 @@ static s32 SEQ_BLM_ButtonCallback(u8 blm, blm_scalar_master_element_t element_id
 	}
 
 	u16 track_mask = 1 << new_track;
-	
+
 	if( blm_mute_solo_active == 1 ) { // Mute Tracks
 	  seq_core_trk_muted ^= track_mask;
 	} else if( blm_mute_solo_active == 2 ) { // Solo Tracks
@@ -1745,7 +1742,7 @@ static s32 SEQ_BLM_ButtonCallback(u8 blm, blm_scalar_master_element_t element_id
       }
     }
   } break;
-    
+
   case BLM_SCALAR_MASTER_ELEMENT_SHIFT: {
     // shift button
     blm_shift_active = button_depressed ? 0 : 1;
@@ -1753,14 +1750,13 @@ static s32 SEQ_BLM_ButtonCallback(u8 blm, blm_scalar_master_element_t element_id
     BLM_SCALAR_MASTER_ForceDisplayUpdate(0);
     return 1; // MIDI event has been taken
   } break;
-    
+
   default:
     return -1; // unexpected element_id
   }
 
   return 0; // no error
 }
-
 
 /////////////////////////////////////////////////////////////////////////////
 // This function is called when a BLM fader has been moved

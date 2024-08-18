@@ -6,7 +6,7 @@
  *  Copyright (C) 2018 Michael Eidenbenz
  *  Licensed for personal non-commercial use only.
  *  All other rights reserved.
- * 
+ *
  * ==========================================================================
  */
 
@@ -401,9 +401,9 @@ static s32 LCD_Handler(u8 high_prio)
       break;
     case BLM_MODE_PATTERNS:
       SEQ_LCD_PrintString("Pattern Mode                            ");
-
       SEQ_LCD_CursorSet(40, 1);
       SEQ_LCD_PrintFormattedString("G1: %s", seq_pattern_name);
+      break;
 
       /* static seq_pattern_t selected_pattern[SEQ_CORE_NUM_GROUPS]; */
       /* static char pattern_name[21]; */
@@ -411,8 +411,24 @@ static s32 LCD_Handler(u8 high_prio)
       /* SEQ_LCD_PrintPattern(selected_pattern[0]); */
       /* SEQ_LCD_PrintFormattedString(": %s", preview_name); */
 
+      /* /////////////////////////////////////////////////////////////////////////// */
+      /* // Save message from ui_save.c 
+      /* SEQ_LCD_CursorSet(40, 1); */
+      /* if( ui_selected_item == ITEM_BANK || ui_selected_item == ITEM_PATTERN ) { */
+      /* 	char pattern_name[21]; */
+      /* 	SEQ_PATTERN_PeekName(save_pattern[ui_selected_group], pattern_name); */
 
-      break;
+      /* 	SEQ_LCD_PrintFormattedString("%3d", save_pattern[ui_selected_group].bank+1); */
+      /* 	SEQ_LCD_PrintChar(':'); */
+      /* 	SEQ_LCD_PrintPattern(save_pattern[ui_selected_group]); */
+      /* 	SEQ_LCD_PrintString(" on Disk: "); */
+      /* 	SEQ_LCD_PrintPatternCategory(seq_pattern[ui_selected_group], pattern_name); */
+      /* 	SEQ_LCD_PrintChar(' '); */
+      /* 	SEQ_LCD_PrintPatternLabel(seq_pattern[ui_selected_group], pattern_name); */
+      /* 	SEQ_LCD_PrintSpaces(3); */
+      /* } else */
+      /* 	SEQ_LCD_PrintSpaces(40); */
+
     case BLM_MODE_KEYBOARD:
       SEQ_LCD_PrintString("Keyboard Mode                           ");
       break;
@@ -423,7 +439,6 @@ static s32 LCD_Handler(u8 high_prio)
   }
   return 0; // no error
 }
-
 
 /////////////////////////////////////////////////////////////////////////////
 // Initialisation
