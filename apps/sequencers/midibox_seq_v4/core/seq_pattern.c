@@ -17,6 +17,8 @@
 
 #include <mios32.h>
 
+#include <string.h>
+
 #include <seq_bpm.h>
 
 #include "tasks.h"
@@ -338,6 +340,30 @@ s32 SEQ_PATTERN_PeekName(seq_pattern_t pattern, char *pattern_name)
   return status;
 }
 
+
+/////////////////////////////////////////////////////////////////////////////
+// Fetches all 8 patterns of a group and checks if they are empty (unnamed)
+// Returns byte where each allocated pattern is flagged with a 1
+// Note: this function call takes ca. 10 mS - it shouldn't be called too often!
+/////////////////////////////////////////////////////////////////////////////
+s32 SEQ_PATTERN_PeekPatternsOfGroup(seq_pattern_t pattern)
+{
+  int num;
+  char pattern_name[21];
+  u8 allocated = 0;
+
+  for(num=0; num<8; ++num) {
+    pattern.num = num;
+    if( SEQ_PATTERN_PeekName(pattern, pattern_name) >= 0 ) {
+      // check if pattern is empty
+      if( strcmp(pattern_name, "-----<empty>        ") != 0 ) {
+        allocated |= (1 << num);
+      }
+    }
+  }
+
+  return allocated;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // Fixes a pattern (load/modify/store)

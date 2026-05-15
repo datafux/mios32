@@ -159,6 +159,7 @@ typedef struct {
   u32 ins_sel:1;
   u32 track_sel:1;
   u32 tempo_preset:1;
+  u32 simplified_antilog_frontpanel:1;
 } seq_hwcfg_button_beh_t;
 
 

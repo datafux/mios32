@@ -275,6 +275,7 @@ seq_hwcfg_button_beh_t seq_hwcfg_button_beh = {
   .ins_sel = 0,
   .track_sel = 0,
   .tempo_preset = 0,
+  .simplified_antilog_frontpanel = 0,
 #endif
 };
 

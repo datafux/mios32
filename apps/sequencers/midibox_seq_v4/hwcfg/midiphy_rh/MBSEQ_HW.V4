@@ -633,6 +633,15 @@ BUTTON_BEH_ALL_WITH_TRIGGERS 0
 
 
 ##################################################
+# Special Behaviour of some selection buttons of
+# the Antilog Frontpanel (to be documented...)
+# 0: default behaviour
+# 1: simplified behaviour
+##################################################
+BUTTON_BEH_SIMPLIFIED_ANTILOG_FRONTPANEL 0
+
+
+##################################################
 # Encoder Functions
 # SR = 0: encoder disabled
 # SR = 1..16: DIN assignment

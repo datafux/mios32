@@ -407,7 +407,7 @@ s32 SEQ_FILE_GC_Read(void)
 #ifndef MBSEQV4L
 	    seq_ui_options.SELECT_UNMUTED_TRACK = value;
 #endif
-	  } else if( strcmp(parameter, "UiSwapGpLedColours") == 0 ) {
+          } else if( strcmp(parameter, "UiSwapGpLedColours") == 0 ) {
 #ifndef MBSEQV4L
 	    seq_ui_options.SWAP_GP_LED_COLOURS = value;
 #endif
@@ -426,6 +426,10 @@ s32 SEQ_FILE_GC_Read(void)
 	  } else if( strcmp(parameter, "UiAllForStepViewOnly") == 0 ) {
 #ifndef MBSEQV4L
 	    seq_ui_options.ALL_FOR_STEP_VIEW_ONLY = value;
+#endif
+          } else if( strcmp(parameter, "UiAllRelative") == 0 ) {
+#ifndef MBSEQV4L
+            seq_ui_options.ALL_RELATIVE = value;
 #endif
           } else if( strcmp(parameter, "UiCvDisplayBipolar") == 0 ) {
 #ifndef MBSEQV4L
@@ -780,6 +784,11 @@ static s32 SEQ_FILE_GC_Write_Hlp(u8 write_to_file)
 
 #ifndef MBSEQV4L
   sprintf(line_buffer, "UiAllForStepViewOnly %d\n", seq_ui_options.ALL_FOR_STEP_VIEW_ONLY);
+  FLUSH_BUFFER;
+#endif
+
+#ifndef MBSEQV4L
+  sprintf(line_buffer, "UiAllRelative %d\n", seq_ui_options.ALL_RELATIVE);
   FLUSH_BUFFER;
 #endif
 

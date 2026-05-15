@@ -871,8 +871,11 @@ s32 SEQ_CORE_Tick(u32 bpm_tick, s8 export_track, u8 mute_nonloopback_tracks)
       u8 track_record_enabled = (seq_record_state.ENABLED && (seq_record_state.ARMED_TRACKS & (1 << track)) != 0) ? 1 : 0;
 #endif
 
+      // calculate step length
+      u16 step_length = ((tcc->clkdiv.value+1) * (tcc->clkdiv.TRIPLETS ? 4 : 6));
+
       // handle LFO effect
-      SEQ_LFO_HandleTrk(track, bpm_tick);
+      SEQ_LFO_HandleTrk(track, step_length, bpm_tick);
 
       // send LFO CC (if enabled and not muted)
       if( !(seq_core_trk_muted & (1 << track)) && !seq_core_slaveclk_mute && !t->lfo_cc_muted_from_midi ) {
@@ -920,9 +923,8 @@ s32 SEQ_CORE_Tick(u32 bpm_tick, s8 export_track, u8 mute_nonloopback_tracks)
       if( next_step_event ) {
 
 	{
-	  // calculate step length
-	  u16 step_length_pre = ((tcc->clkdiv.value+1) * (tcc->clkdiv.TRIPLETS ? 4 : 6));
-	  t->step_length = step_length_pre;
+          // take over new step length
+          t->step_length = step_length;
 
 	  // set timestamp of next step w/o groove delay (reference timestamp)
 	  if( t->state.FIRST_CLK )
@@ -1151,11 +1153,11 @@ s32 SEQ_CORE_Tick(u32 bpm_tick, s8 export_track, u8 mute_nonloopback_tracks)
 #ifdef MBSEQV4P
         seq_layer_evnt_t layer_events[83];
         s32 number_of_events = 0;
-	number_of_events = SEQ_LAYER_GetEventsPlus(track, t->step, layer_events, 0);
+	number_of_events = SEQ_LAYER_GetEventsPlus(track, t->step, layer_events, 0, 1);
 #else
         seq_layer_evnt_t layer_events[16];
         s32 number_of_events = 0;
-	number_of_events = SEQ_LAYER_GetEvents(track, t->step, layer_events, 0);
+	number_of_events = SEQ_LAYER_GetEvents(track, t->step, layer_events, 0, 1);
 #endif
 
 	if( number_of_events > 0 ) {
@@ -1269,10 +1271,14 @@ s32 SEQ_CORE_Tick(u32 bpm_tick, s8 export_track, u8 mute_nonloopback_tracks)
             if( p->type != NoteOn ) {
 	      // apply Pre-FX
 	      if( !no_fx ) {
-		SEQ_LFO_Event(track, e);
+		SEQ_HUMANIZE_Event(track, t->step, e);
+
+		if( !robotize_flags.NOFX ) {
+                  SEQ_LFO_Event(track, e);
+                }
 	      }
 
-            } else if( p->note && p->velocity && (e->len >= 0) ) {
+            } else if( p->velocity && (e->len >= 0) ) {
 	      // Note Event
 
 	      // groove it
@@ -1858,6 +1864,9 @@ s32 SEQ_CORE_Transpose(u8 track, u8 instrument, seq_core_trk_t *t, seq_cc_trk_t 
     return -1;
 
   int note = is_cc ? p->value : p->note;
+
+  if( !is_cc && p->note == 0 ) // before transpose: ensure that velocity is 0 in case no note should be played (original note is 0)
+    p->velocity = 0;           // this allows to transpose to note 0 (c-2) and get it played, and ensures that disabled notes are not played
 
   int inc_oct = tcc->transpose_oct;
   if( inc_oct >= 8 )

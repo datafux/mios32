@@ -58,6 +58,7 @@ extern s32 SEQ_PATTERN_Load(u8 group, seq_pattern_t pattern);
 extern s32 SEQ_PATTERN_Save(u8 group, seq_pattern_t pattern);
 
 extern s32 SEQ_PATTERN_PeekName(seq_pattern_t pattern, char *pattern_name);
+extern s32 SEQ_PATTERN_PeekPatternsOfGroup(seq_pattern_t pattern);
 
 extern s32 SEQ_PATTERN_Fix(u8 group, seq_pattern_t pattern);
 extern s32 SEQ_PATTERN_FixAll(void);
